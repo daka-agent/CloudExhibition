@@ -4,12 +4,18 @@
 
 > 展厅主题：宿舍 PK 赛系列文章 · 青春驻留地
 
+**在线访问**：[https://cloud-exhibition.netlify.app](https://cloud-exhibition.netlify.app)
+
 ## 功能特性
 
 - **3D 漫游展厅**：第一人称视角，键盘 / 触屏控制行走与转向
 - **画框展陈**：19 幅画框沿展厅两侧自动排布，点击查看宿舍故事
 - **访客计数器**：实时显示累计访客数（基于 Abacus 免费 API）
-- **移动端适配**：虚拟摇杆 + 滑动转视角，横屏引导，光源降级优化
+- **移动端全面适配**：
+  - 虚拟摇杆 + 滑动转视角，支持竖屏浏览
+  - 光源降级优化（砍掉 19 盏聚光灯，用自发光 + 增强环境光替代）
+  - 微信内置浏览器兼容（横屏提示可跳过，不卡死）
+  - WebGL 支持检测，旧设备友好提示
 - **合规机制**：版权声明、隐私政策弹窗、撤下机制
 - **容错处理**：封面图加载失败自动生成占位图，加载超时自动跳入展厅
 
@@ -43,21 +49,28 @@ npm run preview   # 本地预览构建产物
 
 ## 部署
 
-### Vercel（推荐）
+本项目为纯静态站点，支持任意静态托管平台一键部署。
 
-1. 在 [Vercel](https://vercel.com) 导入 GitHub 仓库 `daka-agent/CloudExhibition`
-2. Framework Preset 选 **Vite**，Build Command 填 `npm run build`，Output Directory 填 `dist`（通常会自动识别）
-3. 点击 Deploy，之后每次 push 会自动重新部署
+### Netlify（当前部署）
+
+1. 在 [Netlify](https://app.netlify.com/start) 导入仓库
+2. 构建配置自动识别：Build Command `npm run build`，Publish Directory `dist`
+3. 点击 Deploy，之后每次 push 自动重新部署
+
+### Vercel
+
+1. 在 [Vercel](https://vercel.com) 导入仓库
+2. Framework Preset 选 **Vite**，其余自动识别
+3. 点击 Deploy
 
 ### GitHub Pages
 
-1. 本地执行 `npm run build`
-2. 用 gh-pages 分支发布：
-   ```bash
-   npm install -D gh-pages
-   npx gh-pages -d dist
-   ```
-3. 项目已设置 `base: './'`（相对路径），仓库名子路径可直接访问
+```bash
+npm run build
+npx gh-pages -d dist
+```
+
+项目已设置 `base: './'`（相对路径），仓库名子路径可直接访问。
 
 ## 操作方式
 
@@ -73,7 +86,8 @@ npm run preview   # 本地预览构建产物
 - 左下角虚拟摇杆控制移动
 - 右侧滑动控制视角
 - 对准画框轻触查看详情
-- 建议横屏浏览以获得最佳体验
+- 支持竖屏浏览，建议横屏以获得最佳体验
+- 在微信内打开可正常使用（横屏提示可跳过）
 
 ## 新增 / 修改展品
 
@@ -88,7 +102,7 @@ npm run preview   # 本地预览构建产物
      "link": "公众号原文链接"
    }
    ```
-2. 把封面图片放进 `public/content/images/`（建议横版 jpg，约 640×420）
+2. 把封面图片放进 `public/content/images/`（建议横版 jpg，约 640x420）
 3. 封面加载失败时会自动生成带标题的占位图
 4. 重新 `npm run build` 并部署。画框沿展厅两侧墙面自动均匀排布，增删展品无需改代码
 
@@ -113,6 +127,13 @@ src/
     overlay.ts              # 作品详情弹窗
     hud.ts                  # 欢迎页、操作提示、加载进度、法律弹窗
 ```
+
+## 仓库镜像
+
+| 平台 | 地址 |
+|------|------|
+| GitHub | [daka-agent/CloudExhibition](https://github.com/daka-agent/CloudExhibition) |
+| AtomGit | [dakazhang/CloudExhibition](https://atomgit.com/dakazhang/CloudExhibition) |
 
 ## 许可
 
