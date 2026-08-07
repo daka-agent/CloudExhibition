@@ -45,16 +45,46 @@ async function main() {
     return;
   }
 
-  // 手机竖屏提示
+  // 手机竖屏提示（可跳过，微信兼容）
   if (isMobile) {
     const rotateHint = document.getElementById('rotate-hint')!;
+    const rotateContinue = document.getElementById('rotate-continue')!;
+    let rotateDismissed = sessionStorage.getItem('rotate-dismissed') === '1';
+
     const checkOrientation = () => {
+      if (rotateDismissed) {
+        rotateHint.classList.add('hidden');
+        return;
+      }
       const isPortrait = window.innerHeight > window.innerWidth;
       rotateHint.classList.toggle('hidden', !isPortrait);
     };
-    checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    window.addEventListener('orientationchange', checkOrientation);
+
+    if (!rotateDismissed) {
+      checkOrientation();
+      window.addEventListener('resize', checkOrientation);
+      window.addEventListener('orientationchange', () => {
+        // 微信浏览器可能延迟触发，延迟再检查一次
+        setTimeout(checkOrientation, 300);
+        setTimeout(checkOrientation, 800);
+      });
+      // 微信兼容兜底：1 秒轮询，检测到横屏或跳过后自动停止
+      let pollCount = 0;
+      const pollInterval = setInterval(() => {
+        pollCount++;
+        if (rotateDismissed || pollCount > 10) {
+          clearInterval(pollInterval);
+          return;
+        }
+        checkOrientation();
+      }, 1000);
+    }
+
+    rotateContinue.addEventListener('click', () => {
+      rotateDismissed = true;
+      sessionStorage.setItem('rotate-dismissed', '1');
+      rotateHint.classList.add('hidden');
+    });
   }
 
   const { scene, camera, renderer, manager } = createScene(container, isMobile);
