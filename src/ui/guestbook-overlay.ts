@@ -11,6 +11,9 @@ export class GuestbookOverlay {
   private nickCount = document.getElementById('gb-nick-count') as HTMLSpanElement;
   private msgCount = document.getElementById('gb-msg-count') as HTMLSpanElement;
 
+  private cachedMessages: Message[] | null = null;
+  private preloadPromise: Promise<Message[]> | null = null;
+
   onClose?: () => void;
 
   constructor() {
@@ -39,13 +42,28 @@ export class GuestbookOverlay {
     return !this.root.classList.contains('hidden');
   }
 
+  /** 进入展厅时调用，提前加载留言数据 */
+  preload() {
+    if (this.preloadPromise) return;
+    this.preloadPromise = fetchMessages(50);
+    this.preloadPromise.then((msgs) => {
+      this.cachedMessages = msgs;
+      // 如果弹窗已打开，立即刷新列表
+      if (this.isOpen) this.renderMessages(msgs);
+    });
+  }
+
   async open() {
     this.root.classList.remove('hidden');
     this.statusEl.textContent = '';
     this.statusEl.className = 'gb-status';
     this.clearForm();
-    this.list.innerHTML = '<div class="gb-loading">加载留言中…</div>';
-    await this.loadMessages();
+    // 有缓存直接渲染，无缓存等预加载
+    if (this.cachedMessages !== null) {
+      this.renderMessages(this.cachedMessages);
+    } else {
+      this.list.innerHTML = '<div class="gb-loading">加载留言中…</div>';
+    }
   }
 
   hide() {
@@ -54,8 +72,7 @@ export class GuestbookOverlay {
     this.onClose?.();
   }
 
-  private async loadMessages() {
-    const msgs = await fetchMessages(50);
+  private renderMessages(msgs: Message[]) {
     if (msgs.length === 0) {
       this.list.innerHTML = '<div class="gb-empty">暂无留言，快来写下第一条吧！</div>';
       return;
@@ -92,7 +109,10 @@ export class GuestbookOverlay {
       this.statusEl.textContent = '留言成功！';
       this.statusEl.className = 'gb-status gb-success';
       this.clearForm();
-      await this.loadMessages();
+      // 重新拉取最新留言列表
+      const msgs = await fetchMessages(50);
+      this.cachedMessages = msgs;
+      this.renderMessages(msgs);
       this.list.scrollTop = 0;
     } else {
       this.statusEl.textContent = result.error ?? '留言失败';

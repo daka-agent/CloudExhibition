@@ -13,11 +13,23 @@ export class Overlay {
 
   constructor() {
     document.getElementById('ov-close')!.addEventListener('click', () => this.hide());
+    document.getElementById('ov-bottom-close')?.addEventListener('click', () => this.hide());
     this.root.addEventListener('click', (e) => {
       if (e.target === this.root) this.hide();
     });
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') this.hide();
+    });
+    // 拦截"阅读原文"点击，在新窗口打开，展厅不离开
+    this.link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = this.link.getAttribute('href');
+      if (!url || url === '#') return;
+      const w = window.open(url, '_blank', 'noopener,noreferrer');
+      if (!w) {
+        // 弹窗被拦截，兜底在当前窗口打开
+        window.location.href = url;
+      }
     });
   }
 

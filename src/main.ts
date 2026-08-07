@@ -116,6 +116,8 @@ async function main() {
     controls.enabled = true;
     hasEnteredHall = true;
     updateVisitorDisplay();
+    // 提前加载留言数据，避免打开留言簿时等待
+    gbOverlay.preload();
     if (!controls.isTouch) controls.lock();
   };
   const tryReady = () => {
