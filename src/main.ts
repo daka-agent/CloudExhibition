@@ -5,6 +5,7 @@ import { createScene } from './museum/scene';
 import { buildHall } from './museum/hall';
 import { RoamControls } from './museum/controls';
 import { Overlay } from './ui/overlay';
+import { GuestbookOverlay } from './ui/guestbook-overlay';
 import { Hud } from './ui/hud';
 import { fetchVisitorCount } from './visitor-counter';
 
@@ -101,10 +102,14 @@ async function main() {
 
   const controls = new RoamControls(camera, renderer.domElement, hall.bounds);
   const overlay = new Overlay();
+  const gbOverlay = new GuestbookOverlay();
   const raycaster = new THREE.Raycaster();
   raycaster.far = 9;
   const screenCenter = new THREE.Vector2(0, 0);
-  let hovered = -1;
+  let hitExhibit = -1;
+  let hitGuestbook = false;
+  let prevHitExhibit = -1;
+  let prevHitGuestbook = false;
 
   let entered = false;
   const enter = () => {
@@ -129,24 +134,32 @@ async function main() {
   }
 
   overlay.onClose = () => {
+    if (!controls.isTouch && controls.enabled && !gbOverlay.isOpen) controls.lock();
+  };
+
+  gbOverlay.onClose = () => {
     if (!controls.isTouch && controls.enabled) controls.lock();
   };
 
   controls.onLockChange = (locked) => {
     if (controls.isTouch) return;
-    hud.showResume(!locked && controls.enabled && !overlay.isOpen);
+    hud.showResume(!locked && controls.enabled && !overlay.isOpen && !gbOverlay.isOpen);
   };
 
   renderer.domElement.addEventListener('click', () => {
-    if (!controls.enabled || overlay.isOpen) return;
+    if (!controls.enabled || overlay.isOpen || gbOverlay.isOpen) return;
     if (controls.isTouch) {
-      if (hovered >= 0) overlay.show(exhibits[hovered]);
+      if (hitGuestbook) { gbOverlay.open(); return; }
+      if (hitExhibit >= 0) overlay.show(exhibits[hitExhibit]);
       return;
     }
     if (controls.lockedState) {
-      if (hovered >= 0) {
+      if (hitGuestbook) {
         controls.unlock();
-        overlay.show(exhibits[hovered]);
+        gbOverlay.open();
+      } else if (hitExhibit >= 0) {
+        controls.unlock();
+        overlay.show(exhibits[hitExhibit]);
       }
     } else {
       controls.lock();
@@ -158,17 +171,32 @@ async function main() {
     const dt = Math.min(clock.getDelta(), 0.05);
     controls.update(dt);
 
-    let hit = -1;
-    if (controls.enabled && !overlay.isOpen && (controls.isTouch || controls.lockedState)) {
+    let nextExhibit = -1;
+    let nextGuestbook = false;
+    if (controls.enabled && !overlay.isOpen && !gbOverlay.isOpen && (controls.isTouch || controls.lockedState)) {
       raycaster.setFromCamera(screenCenter, camera);
       const hits = raycaster.intersectObjects(hall.hitMeshes, false);
       if (hits.length > 0) {
-        hit = hits[0].object.userData.exhibitIndex as number;
+        const obj = hits[0].object;
+        if (obj.userData.isGuestbook) {
+          nextGuestbook = true;
+        } else {
+          nextExhibit = obj.userData.exhibitIndex as number;
+        }
       }
     }
-    hovered = hit;
-    hall.setHovered(hit);
-    hud.setActionTip(hit >= 0);
+
+    if (nextExhibit !== prevHitExhibit) {
+      hall.setHovered(nextExhibit);
+      prevHitExhibit = nextExhibit;
+    }
+    if (nextGuestbook !== prevHitGuestbook) {
+      hall.setDeskHovered(nextGuestbook);
+      prevHitGuestbook = nextGuestbook;
+    }
+    hitExhibit = nextExhibit;
+    hitGuestbook = nextGuestbook;
+    hud.setActionTip(hitExhibit >= 0 || hitGuestbook, hitGuestbook);
 
     renderer.render(scene, camera);
     requestAnimationFrame(tick);

@@ -19,6 +19,7 @@ export interface Hall {
   bounds: Bounds;
   hitMeshes: THREE.Object3D[];
   setHovered(index: number): void;
+  setDeskHovered(active: boolean): void;
 }
 
 /** 程序化木地板纹理，避免外部图片依赖 */
@@ -100,6 +101,122 @@ function makePlaceholderCover(e: Exhibit): THREE.CanvasTexture {
   return tex;
 }
 
+/** 创建留言簿 3D 讲台（走廊中央） */
+function buildGuestbookDesk(isMobile: boolean): {
+  group: THREE.Group;
+  glowMat: THREE.MeshBasicMaterial;
+} {
+  const group = new THREE.Group();
+
+  // 木质底座
+  const woodMat = new THREE.MeshStandardMaterial({
+    color: 0x8b6914,
+    roughness: 0.55,
+    metalness: 0.08,
+    emissive: isMobile ? 0x3a2510 : 0x000000,
+    emissiveIntensity: isMobile ? 0.35 : 0,
+  });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.1, 0.9), woodMat);
+  body.position.y = 0.55;
+  body.userData.isGuestbook = true;
+  group.add(body);
+
+  // 桌面板
+  const topMat = new THREE.MeshStandardMaterial({
+    color: 0xa07830,
+    roughness: 0.4,
+    metalness: 0.12,
+    emissive: isMobile ? 0x4a3010 : 0x000000,
+    emissiveIntensity: isMobile ? 0.4 : 0,
+  });
+  const top = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.08, 1.1), topMat);
+  top.position.y = 1.1;
+  top.userData.isGuestbook = true;
+  group.add(top);
+
+  // 翻开的书本 — 左页
+  const pageMat = new THREE.MeshStandardMaterial({
+    color: 0xfaf3e0,
+    roughness: 0.85,
+    emissive: isMobile ? 0x5a4a2a : 0x000000,
+    emissiveIntensity: isMobile ? 0.5 : 0,
+  });
+  const leftPage = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.04, 0.7), pageMat);
+  leftPage.position.set(-0.32, 1.18, 0);
+  leftPage.rotation.x = -0.15;
+  leftPage.userData.isGuestbook = true;
+  group.add(leftPage);
+
+  // 右页
+  const rightPage = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.04, 0.7), pageMat);
+  rightPage.position.set(0.32, 1.18, 0);
+  rightPage.rotation.x = 0.15;
+  rightPage.userData.isGuestbook = true;
+  group.add(rightPage);
+
+  // 书脊
+  const spine = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.03, 0.03, 0.7, 8),
+    new THREE.MeshStandardMaterial({ color: 0x6d4c1e, roughness: 0.5 }),
+  );
+  spine.position.set(0, 1.16, 0);
+  spine.rotation.z = Math.PI / 2;
+  group.add(spine);
+
+  // 羽毛笔笔座
+  const quillHolder = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.04, 0.05, 0.15, 6),
+    new THREE.MeshStandardMaterial({
+      color: 0x4a3520,
+      roughness: 0.6,
+      emissive: isMobile ? 0x1a1008 : 0x000000,
+      emissiveIntensity: isMobile ? 0.3 : 0,
+    }),
+  );
+  quillHolder.position.set(0.7, 1.16, -0.25);
+  group.add(quillHolder);
+
+  // 羽毛
+  const feather = new THREE.Mesh(
+    new THREE.ConeGeometry(0.06, 0.4, 6),
+    new THREE.MeshStandardMaterial({
+      color: 0xddccaa,
+      roughness: 0.7,
+      emissive: isMobile ? 0x4a3a1a : 0x000000,
+      emissiveIntensity: isMobile ? 0.5 : 0,
+    }),
+  );
+  feather.position.set(0.7, 1.38, -0.25);
+  feather.rotation.x = 0.3;
+  group.add(feather);
+
+  // 底框装饰
+  const baseMat = new THREE.MeshStandardMaterial({
+    color: 0x6f4a26,
+    roughness: 0.5,
+    metalness: 0.1,
+    emissive: isMobile ? 0x2a1808 : 0x000000,
+    emissiveIntensity: isMobile ? 0.3 : 0,
+  });
+  const base = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.06, 1.2), baseMat);
+  base.position.y = 0.03;
+  group.add(base);
+
+  // 金色发光环（提示可点击）
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: 0xd8a850,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.35,
+  });
+  const glowRing = new THREE.Mesh(new THREE.RingGeometry(0.9, 1.05, 32), glowMat);
+  glowRing.rotation.x = -Math.PI / 2;
+  glowRing.position.y = 1.22;
+  group.add(glowRing);
+
+  return { group, glowMat };
+}
+
 export function buildHall(
   scene: THREE.Scene,
   exhibits: Exhibit[],
@@ -162,6 +279,11 @@ export function buildHall(
       scene.add(p);
     }
   }
+
+  // 留言簿讲台（走廊中央）
+  const { group: deskGroup, glowMat: deskGlowMat } = buildGuestbookDesk(isMobile);
+  deskGroup.position.set(0, 0, -L / 6);
+  scene.add(deskGroup);
 
   // 画框沿左右两面长墙交替均匀排布
   const loader = new THREE.TextureLoader(manager);
@@ -256,6 +378,22 @@ export function buildHall(
     hovered = index;
   }
 
+  // 将留言台可点击网格加入 hitMeshes
+  deskGroup.traverse((child) => {
+    if (child instanceof THREE.Mesh && child.userData.isGuestbook) {
+      hitMeshes.push(child);
+    }
+  });
+
+  // 留言台高亮
+  let deskHovered = false;
+  function setDeskHovered(active: boolean) {
+    if (active === deskHovered) return;
+    deskGlowMat.opacity = active ? 0.7 : 0.35;
+    deskGroup.scale.setScalar(active ? 1.03 : 1);
+    deskHovered = active;
+  }
+
   return {
     bounds: {
       minX: -HALL_W / 2 + 0.7,
@@ -265,5 +403,6 @@ export function buildHall(
     },
     hitMeshes,
     setHovered,
+    setDeskHovered,
   };
 }

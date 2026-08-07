@@ -96,6 +96,38 @@
     </div>
   </div>
 
+  <!-- 留言簿弹窗 -->
+  <div id="gb-overlay" class="layer hidden">
+    <div class="panel gb-panel">
+      <button id="gb-close" aria-label="关闭">×</button>
+      <div class="panel-body">
+        <h2 class="gb-title">留言簿</h2>
+        <p class="gb-desc">在展厅留下你的足迹，和大家分享观展感受吧</p>
+        <div id="gb-list" class="gb-list">
+          <div class="gb-loading">加载留言中…</div>
+        </div>
+        <form id="gb-form" class="gb-form">
+          <div class="gb-field">
+            <label for="gb-nickname">昵称</label>
+            <div class="gb-input-wrap">
+              <input id="gb-nickname" type="text" maxlength="20" placeholder="留下你的名字" />
+              <span id="gb-nick-count" class="gb-counter">0/20</span>
+            </div>
+          </div>
+          <div class="gb-field">
+            <label for="gb-message">留言</label>
+            <div class="gb-input-wrap">
+              <textarea id="gb-message" rows="3" maxlength="500" placeholder="写下你想说的话…"></textarea>
+              <span id="gb-msg-count" class="gb-counter">0/500</span>
+            </div>
+          </div>
+          <div id="gb-status" class="gb-status"></div>
+          <button id="gb-submit" type="button" class="gb-submit-btn">提交留言</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- 手机端虚拟摇杆 -->
   <div id="joystick"><div id="joystick-knob"></div></div>
 

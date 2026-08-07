@@ -62,7 +62,10 @@ export class Hud {
     );
   }
 
-  setActionTip(visible: boolean) {
+  setActionTip(visible: boolean, isGuestbook = false) {
+    if (visible) {
+      this.actionTip.textContent = isGuestbook ? '点击进入留言簿' : '点击查看作品详情';
+    }
     this.actionTip.classList.toggle('hidden', !visible);
   }
 
