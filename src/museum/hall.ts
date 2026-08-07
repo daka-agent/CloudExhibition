@@ -122,14 +122,17 @@ export function buildHall(
   // 天花板
   const ceiling = new THREE.Mesh(
     new THREE.PlaneGeometry(HALL_W, L),
-    new THREE.MeshStandardMaterial({ color: 0xf2ecdf, roughness: 0.95 }),
+    new THREE.MeshStandardMaterial({ color: isMobile ? 0xf8f3e8 : 0xf2ecdf, roughness: 0.95 }),
   );
   ceiling.rotation.x = Math.PI / 2;
   ceiling.position.y = HALL_H;
   scene.add(ceiling);
 
   // 四面墙
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0xe6ddcc, roughness: 0.92 });
+  const wallMat = new THREE.MeshStandardMaterial({
+    color: isMobile ? 0xefe7d8 : 0xe6ddcc,
+    roughness: 0.92,
+  });
   const mkWall = (w: number, x: number, z: number, rotY: number) => {
     const wall = new THREE.Mesh(new THREE.PlaneGeometry(w, HALL_H), wallMat);
     wall.position.set(x, HALL_H / 2, z);
@@ -147,7 +150,7 @@ export function buildHall(
     new THREE.MeshStandardMaterial({
       color: 0xfff6e2,
       emissive: 0xfff0cf,
-      emissiveIntensity: 1.1,
+      emissiveIntensity: isMobile ? 1.8 : 1.1,
     }),
   );
   strip.position.set(0, HALL_H - 0.04, 0);
@@ -191,6 +194,9 @@ export function buildHall(
     const coverMat = new THREE.MeshStandardMaterial({
       map: makePlaceholderCover(e),
       roughness: 0.9,
+      // 手机端给画布加一点自发光，让封面在没有聚光灯的情况下依然清晰可见
+      emissive: isMobile ? 0x2a1a08 : 0x000000,
+      emissiveIntensity: isMobile ? 0.3 : 0,
     });
     loader.load(
       e.cover,
@@ -236,13 +242,16 @@ export function buildHall(
   });
 
   let hovered = -1;
+  // 保存每幅画的默认自发光，供 setHovered 恢复使用
+  const defaultEmissive = isMobile ? 0x3a2510 : 0x000000;
+  const defaultIntensity = isMobile ? 0.35 : 0;
   function setHovered(index: number) {
     if (index === hovered) return;
     entries.forEach((en, i) => {
       const active = i === index;
       en.group.scale.setScalar(active ? 1.045 : 1);
-      en.frameMat.emissive.setHex(active ? 0x7a4a12 : 0x000000);
-      en.frameMat.emissiveIntensity = active ? 0.6 : 1;
+      en.frameMat.emissive.setHex(active ? 0x7a4a12 : defaultEmissive);
+      en.frameMat.emissiveIntensity = active ? 0.6 : defaultIntensity;
     });
     hovered = index;
   }
