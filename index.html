@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>宿舍人物志 · 青春驻留地</title>
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- 加载进度 -->
+  <div id="loading" class="layer">
+    <div class="loading-box">
+      <p class="loading-title">宿舍人物志 · 青春驻留地</p>
+      <div class="loading-track"><div id="loading-bar"></div></div>
+      <p class="loading-sub">正在布展，请稍候…</p>
+    </div>
+  </div>
+
+  <!-- 欢迎封面 -->
+  <div id="welcome" class="layer hidden">
+    <div class="welcome-box">
+      <h1>宿舍人物志 · 青春驻留地</h1>
+      <p class="welcome-sub">这里陈列着 19 间宿舍的青春故事，欢迎漫步观展。</p>
+      <p id="visitor-count" class="welcome-visitors hidden"></p>
+      <div id="hint-text-pc" class="welcome-hint">
+        <p>🖱 点击画面锁定鼠标，转动视角</p>
+        <p>⌨ W / A / S / D 或方向键移动</p>
+        <p>🖼 对准画框，点击即可查看作品详情</p>
+      </div>
+      <div id="hint-text-touch" class="welcome-hint hidden">
+        <p>👆 左侧摇杆移动，右侧滑动转视角</p>
+        <p>🖼 对准画框，点击即可查看作品详情</p>
+      </div>
+      <button id="enter-btn" disabled>加载中…</button>
+      <p class="welcome-copyright">
+        内容来源：微信公众号「大卡师手记」学生投稿 · 仅供教学展示使用<br>
+        © 大卡师手记 · <a id="info-link" href="javascript:void(0)">版权与隐私声明</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- 信息按钮（展厅内） -->
+  <button id="info-btn" class="hidden" aria-label="版权与隐私声明">ⓘ</button>
+  <div id="visitor-badge" class="hidden"></div>
+
+  <!-- 版权与隐私声明弹窗 -->
+  <div id="legal-overlay" class="layer hidden">
+    <div class="panel legal-panel">
+      <button id="legal-close" aria-label="关闭">×</button>
+      <div class="panel-body legal-body">
+        <h2>版权与隐私声明</h2>
+
+        <h3>一、版权声明</h3>
+        <p>本展厅所有文章、图片及文字内容，均来源于微信公众号「大卡师手记」（微信号：dakashishouji）已公开发布的学生投稿作品。著作权归原作者所有。本展厅经公众号运营者授权，仅用于教学展示目的，未经许可不得转载、复制或用于其他商业用途。</p>
+
+        <h3>二、内容来源</h3>
+        <p>展厅内每件展品均附有「阅读原文」链接，指向文章在微信公众号的原始发布页面。如需查看完整文章内容，请点击该链接前往原文阅读。</p>
+
+        <h3>三、个人信息说明</h3>
+        <p>展品摘要中包含的学生姓名、宿舍号等信息，均来自学生在公众号文章中自愿公开的自我介绍内容。这些信息已在公开渠道发布，本展厅仅作整理展示，不额外收集任何个人信息。</p>
+
+        <h3>四、免责声明</h3>
+        <p>本展厅展示的内容均为学生原创投稿，其中的个人描述、生活趣事等均为学生自我表达，不代表公众号运营者或展厅维护者的立场。如有任何内容引起不适，请联系我们处理。</p>
+
+        <h3>五、内容修改与撤下</h3>
+        <p>如果您是文章作者或相关当事人，认为展品中的内容需要修改或撤下，请通过以下方式联系我们，我们将在收到反馈后及时处理：</p>
+        <ul>
+          <li>微信公众号：「大卡师手记」后台留言</li>
+          <li>留言时请注明宿舍号和需要修改/撤下的具体内容</li>
+        </ul>
+
+        <p class="legal-update">最后更新：2026年8月</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 准星与提示 -->
+  <div id="crosshair" class="hidden"></div>
+  <div id="action-tip" class="hidden">点击查看作品详情</div>
+  <div id="resume-tip" class="hidden">点击画面继续漫游</div>
+  <div id="hint" class="hidden"></div>
+
+  <!-- 作品详情浮层 -->
+  <div id="overlay" class="layer hidden">
+    <div class="panel">
+      <button id="ov-close" aria-label="关闭">×</button>
+      <img id="ov-cover" alt="作品封面" />
+      <div class="panel-body">
+        <h2 id="ov-title"></h2>
+        <p id="ov-author"></p>
+        <p id="ov-summary"></p>
+        <p id="ov-content"></p>
+        <a id="ov-link" href="#" target="_blank" rel="noopener">阅读原文 →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 手机端虚拟摇杆 -->
+  <div id="joystick"><div id="joystick-knob"></div></div>
+
+  <!-- 横屏提示（手机竖屏时显示） -->
+  <div id="rotate-hint" class="layer hidden">
+    <div class="rotate-box">
+      <div class="rotate-icon">📱↻</div>
+      <p>请旋转手机至横屏浏览</p>
+      <p class="rotate-sub">横屏体验更佳</p>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

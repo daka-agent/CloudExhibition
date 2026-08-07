@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.local
+
+# Python scripts (data collection tools, not part of the web app)
+*.py
+
+# Work logs and temporary data
+工作日志.md
+dorm_articles.json
+
+# WorkBuddy workspace data
+.workbuddy/
